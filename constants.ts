@@ -1,6 +1,7 @@
 import { Product } from './types';
 
 import protocoloDesinflamacionImg from '@assets/crie+uma+i (1)_1764195608015.png';
+import registroEvolucionImg from '@assets/Screenshot_82_1764195648912.png';
 
 export const PRODUCTS: Product[] = [
   {
@@ -154,7 +155,7 @@ export const PRODUCTS: Product[] = [
     id: 'p3',
     title: 'Registro de Evolución',
     category: 'Seguimiento',
-    image: 'https://images.unsplash.com/photo-1556817411-31ae72fa3ea0?q=80&w=2070&auto=format&fit=crop', // Imagem de balança/caderno
+    image: registroEvolucionImg,
     isLocked: false,
     description: 'Acompaña tu progreso, registra tu peso y celebra cada conquista en tu viaje de transformación.',
     trackerDetails: true
