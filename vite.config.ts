@@ -7,12 +7,13 @@ export default defineConfig(() => {
       server: {
         port: 5000,
         host: '0.0.0.0',
-        allowedHosts: true
+        allowedHosts: true as const
       },
       plugins: [react()],
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),
+          '@assets': path.resolve(__dirname, 'attached_assets'),
         }
       }
     };

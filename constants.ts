@@ -1,6 +1,6 @@
-
-
 import { Product } from './types';
+
+import protocoloDesinflamacionImg from '@assets/crie+uma+i (1)_1764195608015.png';
 
 export const PRODUCTS: Product[] = [
   {
@@ -59,7 +59,7 @@ export const PRODUCTS: Product[] = [
     id: 'p2',
     title: 'Desinflamación de 7 días',
     category: 'Protocolo',
-    image: 'https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=2070&auto=format&fit=crop', // Imagem yoga/detox
+    image: protocoloDesinflamacionImg,
     isLocked: false,
     description: 'Un protocolo intensivo de una semana para deshinchar, eliminar toxinas, recuperar el equilibrio metabólico y preparar el cuerpo para el truco de la gelatina reductora.',
     duration: '7 Días',
