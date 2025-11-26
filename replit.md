@@ -5,8 +5,8 @@ A mobile-first Progressive Web App built with React, TypeScript, and Vite. This 
 
 ## Project Information
 - **Framework**: React 19.2.0 with TypeScript
-- **Build Tool**: Vite 6.2.0
-- **Styling**: Tailwind CSS (inline via className)
+- **Build Tool**: Vite 6.x
+- **Styling**: Tailwind CSS (CDN for development)
 - **Icons**: Lucide React
 - **Target**: Mobile-first responsive design
 
@@ -30,15 +30,24 @@ A mobile-first Progressive Web App built with React, TypeScript, and Vite. This 
 
 ## Development
 - **Port**: 5000 (configured for Replit)
-- **Host**: 0.0.0.0 with allowedHosts set to 'all' for Replit proxy
+- **Host**: 0.0.0.0 with allowedHosts set to `true` for Replit proxy
 - **Dev Command**: `npm run dev`
 - **Build Command**: `npm run build`
 
-## Environment Variables
-The app references `GEMINI_API_KEY` in the Vite config but doesn't actively use it in the current implementation. This is likely reserved for future AI features.
+## Deployment
+- **Type**: Static site deployment
+- **Build Output**: `dist/` directory
+- **Build Command**: `npm run build`
+
+## Security Notes
+- The app originally referenced `GEMINI_API_KEY` but doesn't use it in the code
+- API key exposure risk removed from Vite config to prevent secrets in client bundle
+- If API integration is added later, handle secrets server-side or use VITE_ prefixed public variables
 
 ## Recent Changes
 - 2025-11-26: Initial import and Replit setup
-  - Configured Vite to use port 5000
-  - Added allowedHosts configuration for Replit proxy compatibility
-  - Set up development workflow
+  - Migrated from AI Studio platform to Replit environment
+  - Removed AI Studio CDN import maps from index.html
+  - Configured Vite to use port 5000 with proper host allowlist
+  - Fixed potential security issue by removing API key from client bundle
+  - Set up development workflow and static deployment configuration
