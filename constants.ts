@@ -3,6 +3,7 @@ import { Product } from './types';
 import protocoloDesinflamacionImg from '@assets/crie+uma+i (1)_1764195608015.png';
 import registroEvolucionImg from '@assets/Screenshot_82_1764195648912.png';
 import planAnticelulitisImg from '@assets/Fisioponto_tratamentos_Massagem_anticelulite_Bodyslim_1764195790548.png';
+import quemaGrasaDuermesImg from '@assets/Screenshot_83_1764195842878.png';
 
 export const PRODUCTS: Product[] = [
   {
@@ -462,7 +463,7 @@ export const LOCKED_CONTENT: Product[] = [
     id: 'l2',
     title: 'Quema-Grasa Mientras Duermes',
     category: 'Fórmula Nocturna',
-    image: 'https://images.unsplash.com/photo-1541480601022-2308c0f9c4b0?q=80&w=2070&auto=format&fit=crop',
+    image: quemaGrasaDuermesImg,
     isLocked: true,
     description: 'Descuentos exclusivos en socios.',
   }
