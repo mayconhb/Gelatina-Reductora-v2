@@ -2,6 +2,7 @@ import { Product } from './types';
 
 import protocoloDesinflamacionImg from '@assets/crie+uma+i (1)_1764195608015.png';
 import registroEvolucionImg from '@assets/Screenshot_82_1764195648912.png';
+import planAnticelulitisImg from '@assets/Fisioponto_tratamentos_Massagem_anticelulite_Bodyslim_1764195790548.png';
 
 export const PRODUCTS: Product[] = [
   {
@@ -412,7 +413,7 @@ export const BONUSES: Product[] = [
     id: 'b7',
     title: 'Plan Anticelulitis',
     category: 'Estética',
-    image: 'https://images.unsplash.com/photo-1519415510236-718bdfcd4788?q=80&w=1974&auto=format&fit=crop',
+    image: planAnticelulitisImg,
     isLocked: false,
     description: 'Estrategia de drenaje natural, alimentos clave y técnicas anti-inflamación para reducir visiblemente la celulitis.',
     duration: '1 Semana',
