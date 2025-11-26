@@ -38,9 +38,9 @@ const App: React.FC = () => {
         to { transform: translateX(0); }
       }
       @keyframes bounceIn {
-        0% { opacity: 0; transform: translate(-50%, -20px) scale(0.9); }
-        50% { transform: translate(-50%, 5px) scale(1.05); }
-        100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        0% { opacity: 0; transform: translateY(-20px) scale(0.9); }
+        50% { transform: translateY(5px) scale(1.05); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
       }
       .animate-fade-in-up {
         animation: fadeInUp 0.5s ease-out forwards;
