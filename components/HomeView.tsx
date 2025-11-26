@@ -1,0 +1,234 @@
+import React, { useState, useRef, MouseEvent, useMemo } from 'react';
+import { Lock, ChevronRight } from 'lucide-react';
+import { PRODUCTS, BONUSES, LOCKED_CONTENT, MOTIVATIONAL_QUOTES } from '../constants';
+import { Product } from '../types';
+
+interface HomeViewProps {
+  onProductClick: (product: Product) => void;
+  onShowUpgrade: () => void;
+  userName: string;
+}
+
+// Custom Hook para lógica de arrastar (Drag to Scroll)
+const useDraggableScroll = () => {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [startX, setStartX] = useState(0);
+  const [scrollLeft, setScrollLeft] = useState(0);
+  const [hasMoved, setHasMoved] = useState(false); // Para evitar clique se arrastou
+
+  const onMouseDown = (e: MouseEvent) => {
+    if (!ref.current) return;
+    setIsDragging(true);
+    setHasMoved(false);
+    setStartX(e.pageX - ref.current.offsetLeft);
+    setScrollLeft(ref.current.scrollLeft);
+  };
+
+  const onMouseLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  const onMouseMove = (e: MouseEvent) => {
+    if (!isDragging || !ref.current) return;
+    e.preventDefault();
+    const x = e.pageX - ref.current.offsetLeft;
+    const walk = (x - startX) * 1.5; // Multiplicador de velocidade
+    ref.current.scrollLeft = scrollLeft - walk;
+    if (Math.abs(walk) > 5) setHasMoved(true); // Se moveu mais de 5px, considera arraste
+  };
+
+  return { 
+    ref, 
+    events: { onMouseDown, onMouseLeave, onMouseUp, onMouseMove },
+    isDragging,
+    hasMoved 
+  };
+};
+
+export const HomeView: React.FC<HomeViewProps> = ({ onProductClick, onShowUpgrade, userName }) => {
+  const [activeBanner, setActiveBanner] = useState(0);
+
+  // Instâncias do hook para cada carrossel
+  const bannerScroll = useDraggableScroll();
+  const productsScroll = useDraggableScroll();
+  const bonusScroll = useDraggableScroll();
+  const lockedScroll = useDraggableScroll();
+
+  const banners = [
+    { id: 1, image: "https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=2070&auto=format&fit=crop", title: "Transforma tu vida\nhoy mismo." },
+    { id: 2, image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053&auto=format&fit=crop", title: "Recetas saludables\npara ti." }
+  ];
+
+  const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const scrollLeft = e.currentTarget.scrollLeft;
+    const width = e.currentTarget.clientWidth;
+    const index = Math.round(scrollLeft / (width * 0.8));
+    setActiveBanner(Math.min(Math.max(index, 0), banners.length - 1));
+  };
+
+  const handleProductClickInternal = (product: Product, hasMoved: boolean) => {
+    if (!hasMoved) onProductClick(product);
+  };
+  
+  const handleLockedClickInternal = (hasMoved: boolean) => {
+    if (!hasMoved) onShowUpgrade();
+  };
+
+  // Logic to select daily quote
+  const dailyQuote = useMemo(() => {
+    const now = new Date();
+    const start = new Date(now.getFullYear(), 0, 0);
+    const diff = (now.getTime() - start.getTime()) + ((start.getTimezoneOffset() - now.getTimezoneOffset()) * 60 * 1000);
+    const oneDay = 1000 * 60 * 60 * 24;
+    const dayOfYear = Math.floor(diff / oneDay);
+    return MOTIVATIONAL_QUOTES[dayOfYear % MOTIVATIONAL_QUOTES.length];
+  }, []);
+
+  return (
+    <>
+      <div className="pb-24 pt-8 space-y-8 animate-fade-in bg-transparent min-h-screen">
+        
+        {/* Header: Greeting & Motivation */}
+        <div className="px-6 space-y-1">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Hola, {userName} <span className="text-2xl">👋</span></h1>
+          <p className="text-slate-500 text-sm font-medium leading-relaxed max-w-[90%]">
+            "{dailyQuote}"
+          </p>
+        </div>
+
+        {/* Banner Carousel */}
+        <div className="relative group">
+          <div 
+            ref={bannerScroll.ref}
+            {...bannerScroll.events}
+            onScroll={handleBannerScroll}
+            className={`w-full overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 flex gap-4 ${bannerScroll.isDragging ? 'cursor-grabbing snap-none' : 'cursor-grab'}`}
+          >
+            {banners.map((banner, index) => (
+              <div key={banner.id} className="snap-center shrink-0 w-full sm:w-[350px] relative rounded-3xl overflow-hidden aspect-[16/9] shadow-md select-none pointer-events-none sm:pointer-events-auto">
+                <img 
+                  src={banner.image} 
+                  alt="Banner" 
+                  className="w-full h-full object-cover pointer-events-none"
+                />
+                <div className="absolute inset-0 bg-black/30 flex items-end p-6">
+                  <h2 className="text-white text-2xl font-bold leading-tight whitespace-pre-line drop-shadow-md">{banner.title}</h2>
+                </div>
+              </div>
+            ))}
+          </div>
+          
+          {/* Banner Indicators (Lines) - Bottom Right */}
+          <div className="absolute bottom-5 right-10 flex gap-2 z-10 pointer-events-none">
+              {banners.map((_, i) => (
+                  <div 
+                      key={i} 
+                      className={`h-1 rounded-full transition-all duration-300 shadow-sm ${activeBanner === i ? 'w-8 bg-white opacity-100' : 'w-4 bg-white opacity-50'}`}
+                  />
+              ))}
+          </div>
+        </div>
+
+        {/* Section: Meus Produtos */}
+        <section>
+          <div className="px-6 mb-4 flex items-center justify-between group cursor-pointer hover:opacity-80 transition-opacity">
+            <h3 className="text-xl font-bold text-slate-900">Mis Productos</h3>
+            <ChevronRight size={24} className="text-slate-400" />
+          </div>
+          
+          <div 
+            ref={productsScroll.ref}
+            {...productsScroll.events}
+            className={`flex overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 gap-4 pb-4 ${productsScroll.isDragging ? 'cursor-grabbing snap-none' : 'cursor-grab'}`}
+          >
+            {PRODUCTS.map((product) => (
+              <div 
+                key={product.id}
+                onClick={() => handleProductClickInternal(product, productsScroll.hasMoved)}
+                className="snap-center shrink-0 w-40 flex flex-col gap-2 group cursor-pointer select-none"
+              >
+                <div className="aspect-square rounded-2xl overflow-hidden relative shadow-sm bg-white/60 backdrop-blur-sm">
+                  <img src={product.image} alt={product.title} className="w-full h-full object-cover group-active:scale-105 transition-transform duration-300 pointer-events-none" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 text-sm leading-tight">{product.title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">{product.category}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Section: Bônus */}
+        <section>
+          <div className="px-6 mb-4 flex items-center justify-between group cursor-pointer hover:opacity-80 transition-opacity">
+            <h3 className="text-xl font-bold text-slate-900">Bonos</h3>
+            <ChevronRight size={24} className="text-slate-400" />
+          </div>
+          
+          <div 
+            ref={bonusScroll.ref}
+            {...bonusScroll.events}
+            className={`flex overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 gap-4 pb-4 ${bonusScroll.isDragging ? 'cursor-grabbing snap-none' : 'cursor-grab'}`}
+          >
+            {BONUSES.map((product) => (
+              <div 
+                key={product.id}
+                onClick={() => handleProductClickInternal(product, bonusScroll.hasMoved)}
+                className="snap-center shrink-0 w-40 flex flex-col gap-2 group cursor-pointer select-none"
+              >
+                <div className="aspect-square rounded-2xl overflow-hidden relative shadow-sm bg-white/60 backdrop-blur-sm">
+                  <img src={product.image} alt={product.title} className="w-full h-full object-cover group-active:scale-105 transition-transform duration-300 pointer-events-none" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-800 text-sm leading-tight">{product.title}</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">{product.category}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Section: Locked */}
+        <section>
+          <div className="px-6 mb-4 flex items-center justify-between group cursor-pointer hover:opacity-80 transition-opacity">
+            <h3 className="text-xl font-bold text-slate-900">Contenidos Exclusivos</h3>
+            <ChevronRight size={24} className="text-slate-400" />
+          </div>
+          
+          <div 
+            ref={lockedScroll.ref}
+            {...lockedScroll.events}
+            className={`flex overflow-x-auto snap-x snap-mandatory no-scrollbar px-6 gap-4 pb-4 ${lockedScroll.isDragging ? 'cursor-grabbing snap-none' : 'cursor-grab'}`}
+          >
+            {LOCKED_CONTENT.map((product) => (
+              <div 
+                key={product.id}
+                onClick={() => handleLockedClickInternal(lockedScroll.hasMoved)}
+                className="snap-center shrink-0 w-40 flex flex-col gap-2 group cursor-pointer relative select-none"
+              >
+                <div className="aspect-square rounded-2xl overflow-hidden relative shadow-sm bg-slate-200">
+                  <img src={product.image} alt={product.title} className="w-full h-full object-cover opacity-60 blur-[1px] pointer-events-none" />
+                  <div className="absolute inset-0 bg-black/10 flex items-center justify-center">
+                    <div className="bg-white/90 p-3 rounded-full shadow-md">
+                      <Lock size={20} className="text-slate-900" />
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-slate-400 text-sm leading-tight">{product.title}</h4>
+                  <p className="text-xs text-slate-400 mt-0.5">{product.category}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+    </>
+  );
+};
