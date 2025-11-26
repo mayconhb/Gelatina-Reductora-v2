@@ -7,7 +7,7 @@ export const PRODUCTS: Product[] = [
     id: 'p1',
     title: 'Gelatina Reductora',
     category: 'Receta',
-    image: 'https://images.unsplash.com/photo-1623855675402-e89c6569eb4e?q=80&w=1000&auto=format&fit=crop', // Imagem de chá verde/gelatina
+    image: '/gelatina-reductora.png',
     isLocked: false,
     description: 'Una poderosa aliada para el adelgazamiento, rica en colágeno y propiedades diuréticas.',
     duration: 'PREP: 15min',
