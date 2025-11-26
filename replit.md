@@ -24,7 +24,9 @@ A mobile-first Progressive Web App built with React, TypeScript, and Vite. This 
 - User login and profile management
 - Product carousels with drag-to-scroll functionality
 - Locked premium content with upgrade prompts
-- PWA installation capability
+- Full PWA installation capability with native install prompt
+- Fallback installation instructions for iOS (Share → Add to Home Screen) and Android (Menu → Install app)
+- Service worker for offline capability
 - Local storage for user preferences
 - Daily motivational quotes
 
