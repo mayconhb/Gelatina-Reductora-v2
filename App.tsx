@@ -1,11 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LoginView } from './components/LoginView';
 import { HomeView } from './components/HomeView';
 import { ProfileView } from './components/ProfileView';
 import { TabBar } from './components/TabBar';
 import { ProductDetailView } from './components/ProductDetailView';
 import { Product, ViewState, Tab } from './types';
-import { Download, Star } from 'lucide-react';
+import { Download, Star, Share, MoreVertical, Plus, X, Smartphone } from 'lucide-react';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
 
 const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('login');
@@ -14,19 +19,51 @@ const App: React.FC = () => {
   const [isInstalled, setIsInstalled] = useState(false);
   const [showInstallAlert, setShowInstallAlert] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  const [showInstallInstructions, setShowInstallInstructions] = useState(false);
   
-  // User State
+  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
+  
   const [userName, setUserName] = useState('');
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
 
+  const isIOS = () => {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  };
+
+  const isAndroid = () => {
+    return /Android/.test(navigator.userAgent);
+  };
+
+  const isStandalone = () => {
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+  };
+
   useEffect(() => {
-    // Check if app was previously installed
     const installedStatus = localStorage.getItem('app_installed');
-    if (installedStatus === 'true') {
+    if (installedStatus === 'true' || isStandalone()) {
       setIsInstalled(true);
     }
 
-    // Add custom animations
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      deferredPromptRef.current = e as BeforeInstallPromptEvent;
+    };
+
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      localStorage.setItem('app_installed', 'true');
+      deferredPromptRef.current = null;
+    };
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {});
+    }
+
     const style = document.createElement('style');
     style.innerHTML = `
       @keyframes fadeInUp {
@@ -54,13 +91,15 @@ const App: React.FC = () => {
       .animate-bounce-in {
         animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
       }
-      /* Safe area padding for iPhones */
       .pb-safe {
         padding-bottom: env(safe-area-inset-bottom, 20px);
       }
     `;
     document.head.appendChild(style);
+
     return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
       document.head.removeChild(style);
     };
   }, []);
@@ -83,24 +122,164 @@ const App: React.FC = () => {
     setUserAvatar(newAvatar);
   };
 
-  const handleInstallApp = () => {
-    setShowInstallAlert(true);
-    setTimeout(() => {
-      setShowInstallAlert(false);
-      setIsInstalled(true);
-      localStorage.setItem('app_installed', 'true');
-    }, 2000);
+  const handleInstallApp = async () => {
+    if (deferredPromptRef.current) {
+      try {
+        await deferredPromptRef.current.prompt();
+        const { outcome } = await deferredPromptRef.current.userChoice;
+        if (outcome === 'accepted') {
+          setShowInstallAlert(true);
+          setTimeout(() => {
+            setShowInstallAlert(false);
+            setIsInstalled(true);
+            localStorage.setItem('app_installed', 'true');
+          }, 2000);
+        }
+        deferredPromptRef.current = null;
+      } catch {
+        setShowInstallInstructions(true);
+      }
+    } else {
+      setShowInstallInstructions(true);
+    }
+  };
+
+  const renderInstallInstructionsModal = () => {
+    if (!showInstallInstructions) return null;
+
+    const iosDevice = isIOS();
+    const androidDevice = isAndroid();
+
+    return (
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+        <div 
+          className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+          onClick={() => setShowInstallInstructions(false)}
+        />
+        
+        <div className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center space-y-5 animate-bounce-in border border-white/50 z-10 max-h-[90vh] overflow-y-auto">
+          <button 
+            onClick={() => setShowInstallInstructions(false)}
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+          >
+            <X size={24} />
+          </button>
+
+          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto text-emerald-600">
+            <Smartphone size={32} />
+          </div>
+          
+          <h3 className="text-xl font-bold text-slate-900">
+            Instalar Aplicación
+          </h3>
+
+          {iosDevice ? (
+            <div className="text-left space-y-4">
+              <p className="text-slate-600 text-sm text-center mb-4">
+                Sigue estos pasos para instalar en tu iPhone/iPad:
+              </p>
+              
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Toca el botón Compartir</p>
+                  <p className="text-slate-500 text-xs">Busca el ícono <Share size={14} className="inline text-blue-500" /> en la barra del navegador</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Selecciona "Agregar a inicio"</p>
+                  <p className="text-slate-500 text-xs">Desliza hacia abajo y busca <Plus size={14} className="inline" /> Agregar a pantalla de inicio</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">3</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Confirma la instalación</p>
+                  <p className="text-slate-500 text-xs">Toca "Agregar" en la esquina superior derecha</p>
+                </div>
+              </div>
+            </div>
+          ) : androidDevice ? (
+            <div className="text-left space-y-4">
+              <p className="text-slate-600 text-sm text-center mb-4">
+                Sigue estos pasos para instalar en tu Android:
+              </p>
+              
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Abre el menú del navegador</p>
+                  <p className="text-slate-500 text-xs">Toca los tres puntos <MoreVertical size={14} className="inline" /> en la esquina superior</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Selecciona "Instalar app"</p>
+                  <p className="text-slate-500 text-xs">O busca "Agregar a pantalla de inicio"</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">3</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Confirma la instalación</p>
+                  <p className="text-slate-500 text-xs">Toca "Instalar" en el diálogo que aparece</p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="text-left space-y-4">
+              <p className="text-slate-600 text-sm text-center mb-4">
+                Instala la app desde tu navegador:
+              </p>
+              
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">1</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Busca el ícono de instalación</p>
+                  <p className="text-slate-500 text-xs">En la barra de direcciones o menú del navegador</p>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-xl">
+                <div className="w-8 h-8 bg-emerald-500 text-white rounded-full flex items-center justify-center font-bold text-sm shrink-0">2</div>
+                <div>
+                  <p className="font-semibold text-slate-800 text-sm">Haz clic en "Instalar"</p>
+                  <p className="text-slate-500 text-xs">Confirma la instalación cuando aparezca el diálogo</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <button 
+            onClick={() => setShowInstallInstructions(false)}
+            className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl shadow-lg active:scale-95 transition-all mt-4"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    );
   };
 
   // Main Render Logic
   if (viewState === 'login') {
     return (
-      <LoginView 
-        onLogin={handleLogin} 
-        isInstalled={isInstalled}
-        onInstall={handleInstallApp}
-        installing={showInstallAlert}
-      />
+      <>
+        <LoginView 
+          onLogin={handleLogin} 
+          isInstalled={isInstalled}
+          onInstall={handleInstallApp}
+          installing={showInstallAlert}
+        />
+        {renderInstallInstructionsModal()}
+      </>
     );
   }
 
@@ -203,6 +382,9 @@ const App: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Install Instructions Modal */}
+      {renderInstallInstructionsModal()}
     </div>
   );
 };
