@@ -22,13 +22,35 @@ const App: React.FC = () => {
   
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   
+  const [userEmail, setUserEmail] = useState(() => {
+    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
+    return isLoggedIn ? (localStorage.getItem('current_user_email') || '') : '';
+  });
+  
   const [userName, setUserName] = useState(() => {
     const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    return isLoggedIn ? (localStorage.getItem('user_name') || '') : '';
+    const email = localStorage.getItem('current_user_email') || '';
+    if (isLoggedIn && email) {
+      const userData = localStorage.getItem(`user_data_${email}`);
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        return parsed.name || '';
+      }
+    }
+    return '';
   });
+  
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
     const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    return isLoggedIn ? localStorage.getItem('user_avatar') : null;
+    const email = localStorage.getItem('current_user_email') || '';
+    if (isLoggedIn && email) {
+      const userData = localStorage.getItem(`user_data_${email}`);
+      if (userData) {
+        const parsed = JSON.parse(userData);
+        return parsed.avatar || null;
+      }
+    }
+    return null;
   });
   
   const [viewState, setViewState] = useState<ViewState>(() => {
@@ -114,19 +136,33 @@ const App: React.FC = () => {
     };
   }, []);
 
-  const handleLogin = (name: string) => {
-    // Recupera dados salvos ou usa o nome fornecido
-    const savedName = localStorage.getItem('user_name');
-    const savedAvatar = localStorage.getItem('user_avatar');
+  const handleLogin = (name: string, email: string) => {
+    // Normaliza o email para minúsculas
+    const normalizedEmail = email.toLowerCase().trim();
     
-    // Se já existe um nome salvo, usa ele; senão, usa o novo nome
-    const finalName = savedName || name;
+    // Verifica se já existem dados salvos para este email
+    const existingData = localStorage.getItem(`user_data_${normalizedEmail}`);
     
+    let finalName = name;
+    let finalAvatar: string | null = null;
+    
+    if (existingData) {
+      // Recupera dados existentes do usuário
+      const parsed = JSON.parse(existingData);
+      finalName = parsed.name || name;
+      finalAvatar = parsed.avatar || null;
+    } else {
+      // Primeiro login deste email, salva os dados iniciais
+      const userData = { name, avatar: null };
+      localStorage.setItem(`user_data_${normalizedEmail}`, JSON.stringify(userData));
+    }
+    
+    setUserEmail(normalizedEmail);
     setUserName(finalName);
-    setUserAvatar(savedAvatar);
+    setUserAvatar(finalAvatar);
     setViewState('main');
     
-    localStorage.setItem('user_name', finalName);
+    localStorage.setItem('current_user_email', normalizedEmail);
     localStorage.setItem('user_logged_in', 'true');
   };
 
@@ -136,18 +172,20 @@ const App: React.FC = () => {
     setSelectedProduct(null);
     setUserName('');
     setUserAvatar(null);
-    // Mantém os dados salvos, apenas marca como deslogado
+    setUserEmail('');
+    // Mantém os dados do usuário salvos, apenas desloga
     localStorage.setItem('user_logged_in', 'false');
+    localStorage.removeItem('current_user_email');
   };
 
   const handleUpdateProfile = (newName: string, newAvatar: string | null) => {
     setUserName(newName);
     setUserAvatar(newAvatar);
-    localStorage.setItem('user_name', newName);
-    if (newAvatar) {
-      localStorage.setItem('user_avatar', newAvatar);
-    } else {
-      localStorage.removeItem('user_avatar');
+    
+    // Salva os dados vinculados ao email do usuário atual
+    if (userEmail) {
+      const userData = { name: newName, avatar: newAvatar };
+      localStorage.setItem(`user_data_${userEmail}`, JSON.stringify(userData));
     }
   };
 

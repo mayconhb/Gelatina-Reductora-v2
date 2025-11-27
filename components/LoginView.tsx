@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Download, Leaf, Loader2 } from 'lucide-react';
 
 interface LoginViewProps {
-  onLogin: (name: string) => void;
+  onLogin: (name: string, email: string) => void;
   isInstalled: boolean;
   onInstall: () => void;
   installing: boolean;
@@ -21,7 +21,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, isInstalled, onIn
     // Simulate network delay
     setTimeout(() => {
       setIsLoading(false);
-      onLogin(name);
+      onLogin(name, email);
     }, 1000);
   };
 
