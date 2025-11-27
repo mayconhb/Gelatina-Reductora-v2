@@ -13,7 +13,6 @@ interface BeforeInstallPromptEvent extends Event {
 }
 
 const App: React.FC = () => {
-  const [viewState, setViewState] = useState<ViewState>('login');
   const [activeTab, setActiveTab] = useState<Tab>('home');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
@@ -23,8 +22,17 @@ const App: React.FC = () => {
   
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   
-  const [userName, setUserName] = useState('');
-  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [userName, setUserName] = useState(() => {
+    return localStorage.getItem('user_name') || '';
+  });
+  const [userAvatar, setUserAvatar] = useState<string | null>(() => {
+    return localStorage.getItem('user_avatar');
+  });
+  
+  const [viewState, setViewState] = useState<ViewState>(() => {
+    const savedUser = localStorage.getItem('user_name');
+    return savedUser ? 'main' : 'login';
+  });
 
   const isIOS = () => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
@@ -107,6 +115,7 @@ const App: React.FC = () => {
   const handleLogin = (name: string) => {
     setUserName(name);
     setViewState('main');
+    localStorage.setItem('user_name', name);
   };
 
   const handleLogout = () => {
@@ -115,11 +124,19 @@ const App: React.FC = () => {
     setSelectedProduct(null);
     setUserName('');
     setUserAvatar(null);
+    localStorage.removeItem('user_name');
+    localStorage.removeItem('user_avatar');
   };
 
   const handleUpdateProfile = (newName: string, newAvatar: string | null) => {
     setUserName(newName);
     setUserAvatar(newAvatar);
+    localStorage.setItem('user_name', newName);
+    if (newAvatar) {
+      localStorage.setItem('user_avatar', newAvatar);
+    } else {
+      localStorage.removeItem('user_avatar');
+    }
   };
 
   const handleInstallApp = async () => {
