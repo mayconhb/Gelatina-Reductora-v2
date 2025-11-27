@@ -4,7 +4,7 @@ import { PRODUCTS, BONUSES, LOCKED_CONTENT, MOTIVATIONAL_QUOTES } from '../const
 import { Product } from '../types';
 
 import bannerTransformacao from '@assets/generated_images/weight_loss_transformation_banner.png';
-import bannerNutricao from '@assets/generated_images/healthy_nutrition_foods_banner.png';
+import bannerEmagrecimento from '@assets/generated_images/easy_weight_loss_results_banner.png';
 
 interface HomeViewProps {
   onProductClick: (product: Product) => void;
@@ -64,7 +64,7 @@ export const HomeView: React.FC<HomeViewProps> = ({ onProductClick, onShowUpgrad
 
   const banners = [
     { id: 1, image: bannerTransformacao, title: "Transforma tu vida\nhoy mismo." },
-    { id: 2, image: bannerNutricao, title: "Tu cuerpo merece\nlo mejor." }
+    { id: 2, image: bannerEmagrecimento, title: "Tu cuerpo merece\nlo mejor." }
   ];
 
   const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
