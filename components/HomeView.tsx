@@ -3,6 +3,9 @@ import { Lock, ChevronRight } from 'lucide-react';
 import { PRODUCTS, BONUSES, LOCKED_CONTENT, MOTIVATIONAL_QUOTES } from '../constants';
 import { Product } from '../types';
 
+import bannerTransformacao from '@assets/generated_images/weight_loss_transformation_banner.png';
+import bannerNutricao from '@assets/generated_images/healthy_nutrition_foods_banner.png';
+
 interface HomeViewProps {
   onProductClick: (product: Product) => void;
   onShowUpgrade: () => void;
@@ -60,8 +63,8 @@ export const HomeView: React.FC<HomeViewProps> = ({ onProductClick, onShowUpgrad
   const lockedScroll = useDraggableScroll();
 
   const banners = [
-    { id: 1, image: "https://images.unsplash.com/photo-1544367563-12123d8965cd?q=80&w=2070&auto=format&fit=crop", title: "Transforma tu vida\nhoy mismo." },
-    { id: 2, image: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?q=80&w=2053&auto=format&fit=crop", title: "Recetas saludables\npara ti." }
+    { id: 1, image: bannerTransformacao, title: "Transforma tu vida\nhoy mismo." },
+    { id: 2, image: bannerNutricao, title: "Tu cuerpo merece\nlo mejor." }
   ];
 
   const handleBannerScroll = (e: React.UIEvent<HTMLDivElement>) => {
