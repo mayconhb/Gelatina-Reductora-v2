@@ -23,15 +23,17 @@ const App: React.FC = () => {
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   
   const [userName, setUserName] = useState(() => {
-    return localStorage.getItem('user_name') || '';
+    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
+    return isLoggedIn ? (localStorage.getItem('user_name') || '') : '';
   });
   const [userAvatar, setUserAvatar] = useState<string | null>(() => {
-    return localStorage.getItem('user_avatar');
+    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
+    return isLoggedIn ? localStorage.getItem('user_avatar') : null;
   });
   
   const [viewState, setViewState] = useState<ViewState>(() => {
-    const savedUser = localStorage.getItem('user_name');
-    return savedUser ? 'main' : 'login';
+    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
+    return isLoggedIn ? 'main' : 'login';
   });
 
   const isIOS = () => {
@@ -113,9 +115,19 @@ const App: React.FC = () => {
   }, []);
 
   const handleLogin = (name: string) => {
-    setUserName(name);
+    // Recupera dados salvos ou usa o nome fornecido
+    const savedName = localStorage.getItem('user_name');
+    const savedAvatar = localStorage.getItem('user_avatar');
+    
+    // Se já existe um nome salvo, usa ele; senão, usa o novo nome
+    const finalName = savedName || name;
+    
+    setUserName(finalName);
+    setUserAvatar(savedAvatar);
     setViewState('main');
-    localStorage.setItem('user_name', name);
+    
+    localStorage.setItem('user_name', finalName);
+    localStorage.setItem('user_logged_in', 'true');
   };
 
   const handleLogout = () => {
@@ -124,8 +136,8 @@ const App: React.FC = () => {
     setSelectedProduct(null);
     setUserName('');
     setUserAvatar(null);
-    localStorage.removeItem('user_name');
-    localStorage.removeItem('user_avatar');
+    // Mantém os dados salvos, apenas marca como deslogado
+    localStorage.setItem('user_logged_in', 'false');
   };
 
   const handleUpdateProfile = (newName: string, newAvatar: string | null) => {
