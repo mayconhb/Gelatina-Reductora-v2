@@ -28,6 +28,72 @@ const App: React.FC = () => {
   const [viewState, setViewState] = useState<ViewState>('login');
   const [isHydrated, setIsHydrated] = useState(false);
 
+  const historyPushedRef = useRef(false);
+  const isProgrammaticBackRef = useRef(false);
+  const stateRef = useRef({ selectedProduct, showUpgradeModal, showInstallInstructions, activeTab, viewState });
+
+  const popHistoryEntry = () => {
+    if (historyPushedRef.current) {
+      isProgrammaticBackRef.current = true;
+      historyPushedRef.current = false;
+      window.history.back();
+    }
+  };
+
+  const closeProductDetail = () => {
+    setSelectedProduct(null);
+    popHistoryEntry();
+  };
+
+  const closeUpgradeModal = () => {
+    setShowUpgradeModal(false);
+    popHistoryEntry();
+  };
+
+  const closeInstallInstructions = () => {
+    setShowInstallInstructions(false);
+    popHistoryEntry();
+  };
+
+  useEffect(() => {
+    stateRef.current = { selectedProduct, showUpgradeModal, showInstallInstructions, activeTab, viewState };
+  }, [selectedProduct, showUpgradeModal, showInstallInstructions, activeTab, viewState]);
+
+  useEffect(() => {
+    const hasOpenOverlay = selectedProduct || showUpgradeModal || showInstallInstructions;
+    
+    if (hasOpenOverlay && !historyPushedRef.current) {
+      historyPushedRef.current = true;
+      window.history.pushState({ appState: true }, '');
+    }
+  }, [selectedProduct, showUpgradeModal, showInstallInstructions]);
+
+  useEffect(() => {
+    const handleBackButton = () => {
+      if (isProgrammaticBackRef.current) {
+        isProgrammaticBackRef.current = false;
+        return;
+      }
+      
+      const state = stateRef.current;
+      historyPushedRef.current = false;
+      
+      if (state.selectedProduct) {
+        setSelectedProduct(null);
+      } else if (state.showUpgradeModal) {
+        setShowUpgradeModal(false);
+      } else if (state.showInstallInstructions) {
+        setShowInstallInstructions(false);
+      }
+    };
+
+    window.addEventListener('popstate', handleBackButton);
+
+    return () => {
+      window.removeEventListener('popstate', handleBackButton);
+    };
+  }, []);
+
   // Carrega dados do localStorage apenas no cliente (após hidratação)
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -218,12 +284,12 @@ const App: React.FC = () => {
       <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
         <div 
           className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
-          onClick={() => setShowInstallInstructions(false)}
+          onClick={closeInstallInstructions}
         />
         
         <div className="relative bg-white rounded-3xl shadow-2xl p-6 max-w-sm w-full text-center space-y-5 animate-bounce-in border border-white/50 z-10 max-h-[90vh] overflow-y-auto">
           <button 
-            onClick={() => setShowInstallInstructions(false)}
+            onClick={closeInstallInstructions}
             className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
           >
             <X size={24} />
@@ -322,7 +388,7 @@ const App: React.FC = () => {
           )}
 
           <button 
-            onClick={() => setShowInstallInstructions(false)}
+            onClick={closeInstallInstructions}
             className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl shadow-lg active:scale-95 transition-all mt-4"
           >
             Entendido
@@ -397,7 +463,7 @@ const App: React.FC = () => {
       {selectedProduct && (
         <ProductDetailView 
           product={selectedProduct} 
-          onBack={() => setSelectedProduct(null)} 
+          onBack={closeProductDetail} 
         />
       )}
 
@@ -407,7 +473,7 @@ const App: React.FC = () => {
           {/* Backdrop */}
           <div 
             className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm animate-fade-in"
-            onClick={() => setShowUpgradeModal(false)}
+            onClick={closeUpgradeModal}
           />
           
           {/* Modal Card */}
@@ -426,7 +492,7 @@ const App: React.FC = () => {
             </p>
 
             <button 
-              onClick={() => setShowUpgradeModal(false)}
+              onClick={closeUpgradeModal}
               className="w-full bg-slate-900 text-white font-bold py-3.5 rounded-2xl shadow-lg shadow-slate-900/20 active:scale-95 transition-all mt-4 hover:bg-slate-800"
             >
               Entendido
