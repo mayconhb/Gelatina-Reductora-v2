@@ -178,9 +178,11 @@ const App: React.FC = () => {
     setUserAvatar(newAvatar);
     
     // Salva os dados vinculados ao email do usuário atual
-    if (userEmail) {
+    // Usa o estado ou busca diretamente do localStorage como fallback
+    const emailToUse = userEmail || localStorage.getItem('current_user_email');
+    if (emailToUse) {
       const userData = { name: newName, avatar: newAvatar };
-      localStorage.setItem(`user_data_${userEmail}`, JSON.stringify(userData));
+      localStorage.setItem(`user_data_${emailToUse}`, JSON.stringify(userData));
     }
   };
 
