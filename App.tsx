@@ -22,41 +22,36 @@ const App: React.FC = () => {
   
   const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
   
-  const [userEmail, setUserEmail] = useState(() => {
-    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    return isLoggedIn ? (localStorage.getItem('current_user_email') || '') : '';
-  });
-  
-  const [userName, setUserName] = useState(() => {
-    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    const email = localStorage.getItem('current_user_email') || '';
-    if (isLoggedIn && email) {
-      const userData = localStorage.getItem(`user_data_${email}`);
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        return parsed.name || '';
+  const [userEmail, setUserEmail] = useState('');
+  const [userName, setUserName] = useState('');
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+  const [viewState, setViewState] = useState<ViewState>('login');
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // Carrega dados do localStorage apenas no cliente (após hidratação)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
+      const email = localStorage.getItem('current_user_email') || '';
+      
+      if (isLoggedIn && email) {
+        setUserEmail(email);
+        setViewState('main');
+        
+        const userData = localStorage.getItem(`user_data_${email}`);
+        if (userData) {
+          try {
+            const parsed = JSON.parse(userData);
+            setUserName(parsed.name || '');
+            setUserAvatar(parsed.avatar || null);
+          } catch (e) {
+            console.error('Error parsing user data');
+          }
+        }
       }
+      setIsHydrated(true);
     }
-    return '';
-  });
-  
-  const [userAvatar, setUserAvatar] = useState<string | null>(() => {
-    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    const email = localStorage.getItem('current_user_email') || '';
-    if (isLoggedIn && email) {
-      const userData = localStorage.getItem(`user_data_${email}`);
-      if (userData) {
-        const parsed = JSON.parse(userData);
-        return parsed.avatar || null;
-      }
-    }
-    return null;
-  });
-  
-  const [viewState, setViewState] = useState<ViewState>(() => {
-    const isLoggedIn = localStorage.getItem('user_logged_in') === 'true';
-    return isLoggedIn ? 'main' : 'login';
-  });
+  }, []);
 
   const isIOS = () => {
     return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
