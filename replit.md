@@ -47,6 +47,13 @@ A mobile-first Progressive Web App built with React, TypeScript, and Vite. This 
 - If API integration is added later, handle secrets server-side or use VITE_ prefixed public variables
 
 ## Recent Changes
+- 2025-11-27: Hardware back button control for mobile
+  - Implemented proper history management for mobile back button
+  - Back button now closes overlays (product detail, upgrade modal, install instructions) instead of exiting the app
+  - Uses refs (historyPushedRef, isProgrammaticBackRef) to prevent phantom history entries
+  - UI close actions and hardware back button both properly manage history stack
+  - When no overlays are open, back button exits the app normally
+
 - 2025-11-27: Profile editing and cache improvements
   - Simplified profile editing: photo can now be changed directly by tapping the avatar
   - Added inline name editing with visible pencil icon (touch-friendly)
