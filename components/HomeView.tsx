@@ -4,7 +4,7 @@ import { PRODUCTS, BONUSES, LOCKED_CONTENT, MOTIVATIONAL_QUOTES } from '../const
 import { Product } from '../types';
 
 import bannerTransformacao from '@assets/generated_images/weight_loss_transformation_banner.png';
-import bannerEmagrecimento from '@assets/generated_images/easy_weight_loss_results_banner.png';
+import bannerEmagrecimento from '@assets/generated_images/mirror_reflection_weight_loss.png';
 
 interface HomeViewProps {
   onProductClick: (product: Product) => void;
