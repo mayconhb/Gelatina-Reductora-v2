@@ -47,6 +47,13 @@ A mobile-first Progressive Web App built with React, TypeScript, and Vite. This 
 - If API integration is added later, handle secrets server-side or use VITE_ prefixed public variables
 
 ## Recent Changes
+- 2025-11-27: Profile editing and cache improvements
+  - Simplified profile editing: photo can now be changed directly by tapping the avatar
+  - Added inline name editing with visible pencil icon (touch-friendly)
+  - Removed separate "Datos Personales" screen for simpler UX
+  - Changed Service Worker from cache-first to network-first strategy
+  - This prevents white screen issues after app updates
+
 - 2025-11-26: Initial import and Replit setup
   - Migrated from AI Studio platform to Replit environment
   - Removed AI Studio CDN import maps from index.html
